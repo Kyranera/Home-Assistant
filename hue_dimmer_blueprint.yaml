@@ -1,0 +1,160 @@
+
+blueprint:
+  name: Hue Dimmer Switch – 3-fach Tipp & Dimmen
+  description: >
+    Steuerung von bis zu 3 Aktionen durch 1×, 2× oder 3× Tippen auf die "On"- oder "Off"-Taste
+    sowie Dimmen über "Up Hold" und "Down Hold" mit einem Hue Dimmer Switch (Modell 324131092621)
+    via Zigbee2MQTT.
+  domain: automation
+  input:
+    mqtt_topic:
+      name: MQTT Topic
+      description: MQTT-Topic des Hue Dimmers (z. B. zigbee2mqtt/Hue RC Clemens Bett/action)
+      selector:
+        text:
+    lights:
+      name: Ziellichter
+      description: Die Lichter, die geschaltet und gedimmt werden sollen
+      selector:
+        target:
+          entity:
+            domain: light
+
+variables:
+  mqtt_topic: !input mqtt_topic
+  lights: !input lights
+
+trigger:
+  - platform: mqtt
+    topic: "{{ mqtt_topic }}"
+
+mode: restart
+
+variables:
+  tap_counter: input_number.hue_dimmer_tap_counter
+
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == 'on_press' }}"
+        sequence:
+          - service: input_number.increment
+            target:
+              entity_id: "{{ tap_counter }}"
+          - delay:
+              seconds: 0.3
+          - wait_for_trigger:
+              - platform: mqtt
+                topic: "{{ mqtt_topic }}"
+                payload: "on_press"
+            timeout: 2
+            continue_on_timeout: true
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ wait.trigger is none }}"
+                sequence:
+                  - choose:
+                      - conditions:
+                          - condition: template
+                            value_template: "{{ states(tap_counter) | int == 1 }}"
+                        sequence:
+                          - service: light.turn_on
+                            target: !input lights
+                      - conditions:
+                          - condition: template
+                            value_template: "{{ states(tap_counter) | int == 2 }}"
+                        sequence:
+                          - service: light.turn_on
+                            target: !input lights
+                            data:
+                              brightness_step_pct: 30
+                      - conditions:
+                          - condition: template
+                            value_template: "{{ states(tap_counter) | int == 3 }}"
+                        sequence:
+                          - service: light.turn_on
+                            target: !input lights
+                            data:
+                              brightness_pct: 100
+                  - service: input_number.set_value
+                    data:
+                      entity_id: "{{ tap_counter }}"
+                      value: 0
+
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == 'off_press' }}"
+        sequence:
+          - service: input_number.increment
+            target:
+              entity_id: "{{ tap_counter }}"
+          - delay:
+              seconds: 0.3
+          - wait_for_trigger:
+              - platform: mqtt
+                topic: "{{ mqtt_topic }}"
+                payload: "off_press"
+            timeout: 2
+            continue_on_timeout: true
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ wait.trigger is none }}"
+                sequence:
+                  - choose:
+                      - conditions:
+                          - condition: template
+                            value_template: "{{ states(tap_counter) | int == 1 }}"
+                        sequence:
+                          - service: light.turn_off
+                            target: !input lights
+                      - conditions:
+                          - condition: template
+                            value_template: "{{ states(tap_counter) | int == 2 }}"
+                        sequence:
+                          - service: light.turn_off
+                            target: !input lights
+                      - conditions:
+                          - condition: template
+                            value_template: "{{ states(tap_counter) | int == 3 }}"
+                        sequence:
+                          - service: light.turn_off
+                            target: !input lights
+                  - service: input_number.set_value
+                    data:
+                      entity_id: "{{ tap_counter }}"
+                      value: 0
+
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == 'up_hold' }}"
+        sequence:
+          - repeat:
+              while:
+                - condition: template
+                  value_template: "{{ is_state(trigger.entity_id, 'on') }}"
+              sequence:
+                - service: light.turn_on
+                  target: !input lights
+                  data:
+                    brightness_step_pct: 10
+                - delay:
+                    milliseconds: 500
+
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == 'down_hold' }}"
+        sequence:
+          - repeat:
+              while:
+                - condition: template
+                  value_template: "{{ is_state(trigger.entity_id, 'on') }}"
+              sequence:
+                - service: light.turn_on
+                  target: !input lights
+                  data:
+                    brightness_step_pct: -10
+                - delay:
+                    milliseconds: 500
