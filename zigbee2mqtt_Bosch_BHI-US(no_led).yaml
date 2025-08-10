@@ -1,0 +1,249 @@
+blueprint:
+  name: Bosch Universal Switch II - BHI-US (NO LED's)
+  description: >
+    Supports short and long presses for all four buttons (Top Left, Top Right, Bottom Left, Bottom Right)
+    of the Bosch Universal Switch II via Zigbee2MQTT.
+  domain: automation
+  input:
+    integration:
+      name: Zigbee2MQTT Integration Name
+      description: Default is zigbee2mqtt
+      default: zigbee2mqtt
+    mqtt_device:
+      name: Zigbee2MQTT Device Name
+      description: Device name used in Zigbee2MQTT (e.g., bosch_switch)
+      selector:
+        device:
+          filter:
+            - integration: mqtt
+              manufacturer: Bosch
+    #################################
+    ##########   Buttons   ##########
+    #################################
+
+    ################
+    ##  Top Left  ##
+    ################
+    button_top_left:
+      name: Top Left Button
+      collapsed: true
+      input:
+        button_top_left_release:
+          name: Short Press (Release)
+          default: []
+          selector:
+            action: {}
+        button_top_left_longpress:
+          name: Long Press (Hold)
+          default: []
+          selector:
+            action: {}
+        button_top_left_longpress_release:
+          name: Long Press (Release)
+          default: []
+          selector:
+            action: {}
+
+    #################
+    ##  Top Right  ##
+    #################
+    button_top_right:
+      name: Top Right Button
+      collapsed: true
+      input:
+        button_top_right_release:
+          name: Short Press (Release)
+          default: []
+          selector:
+            action: {}
+        button_top_right_longpress:
+          name: Long Press (Hold)
+          default: []
+          selector:
+            action: {}
+        button_top_right_longpress_release:
+          name: Long Press (Release)
+          default: []
+          selector:
+            action: {}
+
+    ###################
+    ##  Bottom Left  ##
+    ###################
+    button_bottom_left:
+      name: Bottom Left Button
+      collapsed: true
+      input:
+        button_bottom_left_release:
+          name: Short Press (Release)
+          default: []
+          selector:
+            action: {}
+        button_bottom_left_longpress:
+          name: Long Press (Hold)
+          default: []
+          selector:
+            action: {}
+        button_bottom_left_longpress_release:
+          name: Long Press (Release)
+          default: []
+          selector:
+            action: {}
+
+    ####################
+    ##  Bottom Right  ##
+    ####################
+    button_bottom_right:
+      name: Bottom Right Button
+      collapsed: true
+      input:
+        button_bottom_right_release:
+          name: Short Press (Release)
+          default: []
+          selector:
+            action: {}
+        button_bottom_right_longpress:
+          name: Long Press (Hold)
+          default: []
+          selector:
+            action: {}
+        button_bottom_right_longpress_release:
+          name: Long Press (Release)
+          default: []
+          selector:
+            action: {}
+
+##################################
+##########   Variables   #########
+##################################
+trigger_variables:
+  integration: !input integration
+  mqtt_device: !input mqtt_device
+
+##################################
+##########   Triggers   ##########
+##################################
+trigger:
+  # Top Left Button
+  - trigger: device
+    device_id: !input mqtt_device
+    domain: mqtt
+    type: action
+    subtype: button_top_left_release
+  - trigger: device
+    device_id: !input mqtt_device
+    domain: mqtt
+    type: action
+    subtype: button_top_left_longpress
+  - trigger: device
+    device_id: !input mqtt_device
+    domain: mqtt
+    type: action
+    subtype: button_top_left_longpress_release
+  # Top Right Button
+  - trigger: device
+    device_id: !input mqtt_device
+    domain: mqtt
+    type: action
+    subtype: button_top_right_release
+  - trigger: device
+    device_id: !input mqtt_device
+    domain: mqtt
+    type: action
+    subtype: button_top_right_longpress
+  - trigger: device
+    device_id: !input mqtt_device
+    domain: mqtt
+    type: action
+    subtype: button_top_right_longpress_release
+  # Bottom Left Button
+  - trigger: device
+    device_id: !input mqtt_device
+    domain: mqtt
+    type: action
+    subtype: button_bottom_left_release
+  - trigger: device
+    device_id: !input mqtt_device
+    domain: mqtt
+    type: action
+    subtype: button_bottom_left_longpress
+  - trigger: device
+    device_id: !input mqtt_device
+    domain: mqtt
+    type: action
+    subtype: button_bottom_left_longpress_release
+  # Bottom Right Button
+  - trigger: device
+    device_id: !input mqtt_device
+    domain: mqtt
+    type: action
+    subtype: button_bottom_right_release
+  - trigger: device
+    device_id: !input mqtt_device
+    domain: mqtt
+    type: action
+    subtype: button_bottom_right_longpress
+  - trigger: device
+    device_id: !input mqtt_device
+    domain: mqtt
+    type: action
+    subtype: button_bottom_right_longpress_release
+
+##################################
+##########   Actions   ###########
+##################################
+action:
+  - choose:
+      # Top Left Button Actions
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == 'button_top_left_release' }}"
+        sequence: !input button_top_left_release
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == 'button_top_left_longpress' }}"
+        sequence: !input button_top_left_longpress
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == 'button_top_left_longpress_release' }}"
+        sequence: !input button_top_left_longpress_release
+      # Top Right Button Actions
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == 'button_top_right_release' }}"
+        sequence: !input button_top_right_release
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == 'button_top_right_longpress' }}"
+        sequence: !input button_top_right_longpress
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == 'button_top_right_longpress_release' }}"
+        sequence: !input button_top_right_longpress_release
+      # Bottom Left Button Actions
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == 'button_bottom_left_release' }}"
+        sequence: !input button_bottom_left_release
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == 'button_bottom_left_longpress' }}"
+        sequence: !input button_bottom_left_longpress
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == 'button_bottom_left_longpress_release' }}"
+        sequence: !input button_bottom_left_longpress_release
+      # Bottom Right Button Actions
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == 'button_bottom_right_release' }}"
+        sequence: !input button_bottom_right_release
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == 'button_bottom_right_longpress' }}"
+        sequence: !input button_bottom_right_longpress
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.payload == 'button_bottom_right_longpress_release' }}"
+        sequence: !input button_bottom_right_longpress_release
+mode: single
